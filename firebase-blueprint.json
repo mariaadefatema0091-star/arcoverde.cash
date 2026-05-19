@@ -1,0 +1,58 @@
+{
+  "entities": {
+    "admin": {
+      "title": "Administrator",
+      "description": "User with administrative privileges",
+      "type": "object",
+      "properties": {
+        "email": { "type": "string", "description": "Email of the admin" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["email"]
+    },
+    "mission": {
+      "title": "Mission",
+      "description": "A task for users to complete",
+      "type": "object",
+      "properties": {
+        "title": { "type": "string" },
+        "category": { "type": "string" },
+        "reward": { "type": "number" },
+        "image": { "type": "string" },
+        "status": { "type": "string", "enum": ["available", "locked"] },
+        "unlockTime": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["title", "reward"]
+    },
+    "transaction": {
+      "title": "Transaction",
+      "description": "A financial movement (cashback or withdrawal)",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "amount": { "type": "number" },
+        "type": { "type": "string", "enum": ["cashback", "withdrawal"] },
+        "status": { "type": "string", "enum": ["pending", "completed", "rejected"] },
+        "store": { "type": "string" },
+        "pixKey": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["userId", "amount", "type", "status"]
+    }
+  },
+  "firestore": {
+    "admins": {
+      "schema": "admin",
+      "description": "Collection of authorized administrators"
+    },
+    "missions": {
+      "schema": "mission",
+      "description": "Available missions for users"
+    },
+    "transactions": {
+      "schema": "transaction",
+      "description": "User transactions and withdrawal requests"
+    }
+  }
+}

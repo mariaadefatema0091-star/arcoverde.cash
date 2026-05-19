@@ -1,0 +1,62 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Default deny
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Auth Helpers
+    function isSignedIn() { return request.auth != null; }
+    function isVerified() { return isSignedIn() && request.auth.token.email_verified == true; }
+    function isOwner(userId) { return isSignedIn() && request.auth.uid == userId; }
+    function isAdmin() { 
+      return isSignedIn() && (
+        exists(/databases/$(database)/documents/admins/$(request.auth.uid)) ||
+        request.auth.token.email == "mariaadefatema0091@gmail.com"
+      );
+    }
+    function isValidId(id) { return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$'); }
+    function incoming() { return request.resource.data; }
+    function existing() { return resource.data; }
+
+    // Admins Collection
+    match /admins/{adminId} {
+      allow read: if isAdmin();
+      allow write: if false; // Only manageable via Firebase Console or special script
+    }
+
+    // Missions Collection
+    function isValidMission(data) {
+      return data.title is string && data.title.size() <= 100 &&
+             data.reward is number && data.reward >= 0 &&
+             (data.category == null || (data.category is string && data.category.size() <= 50));
+    }
+    match /missions/{missionId} {
+      allow read: if true; // Missions are public for viewing
+      allow create: if isAdmin() && isValidMission(incoming());
+      allow update: if isAdmin() && isValidMission(incoming());
+      allow delete: if isAdmin();
+    }
+
+    // Transactions Collection
+    function isValidTransaction(data) {
+      return data.userId is string && data.userId == request.auth.uid &&
+             data.amount is number && data.amount > 0 &&
+             data.type in ['cashback', 'withdrawal'] &&
+             data.status in ['pending', 'completed', 'rejected'];
+    }
+    match /transactions/{txId} {
+      allow list: if isSignedIn() && resource.data.userId == request.auth.uid;
+      allow get: if isSignedIn() && resource.data.userId == request.auth.uid;
+      allow create: if isVerified() && isValidTransaction(incoming());
+      allow update: if isAdmin(); // Admin updates status
+      allow delete: if isAdmin();
+    }
+    
+    // System metadata
+    match /system/{doc} {
+      allow read: if true;
+    }
+  }
+}

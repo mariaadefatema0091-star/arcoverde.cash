@@ -1,0 +1,8 @@
+{
+  "name": "Remix: Cash Arcoverde",
+  "description": "Uma plataforma de recompensas e carteira digital para a cidade de Arcoverde, conectando cidadãos e comércio local.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
